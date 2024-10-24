@@ -1,30 +1,32 @@
 // ==UserScript==
 // @name         BambooHR Timesheet Fill Month
 // @namespace    month.timesheet.bamboohr.sconde.net
-// @version      1.3
+// @version      1.4
 // @description  Fill BambooHR Timesheet month with templates
-// @author       Sergio Conde
+// @author       Alvaro Gutierrez (forked from Sergio Conde)
 // @match        https://*.bamboohr.com/employees/timesheet/*
 // @grant        GM.getValue
 // @grant        GM.setValue
-// @homepageURL  https://github.com/skgsergio/greasemonkey-scripts/
-// @supportURL   https://github.com/skgsergio/greasemonkey-scripts/issues
-// @updateURL    https://raw.githubusercontent.com/skgsergio/greasemonkey-scripts/master/bamboohr-timesheet-month.user.js
+// @homepageURL  https://github.com/alvarogl/greasemonkey-scripts
+// @supportURL   https://github.com/alvarogl/greasemonkey-scripts/issues
+// @updateURL    https://raw.githubusercontent.com/alvarogl/greasemonkey-scripts/master/bamboohr-timesheet-month.user.js
 // ==/UserScript==
 
 'use strict';
 
 /*
    Don't touch this, won't persist across updates.
-
    Load BambooHR for the first time with the script and then open this script Storage preferences and edit there.
  */
 const DEFAULT_TEMPLATES = {
-  'default': [{ start: '8:15', end: '13:00' }, { start: '13:30', end: '16:45' }],
-  'Fri': [{ start: '8:15', end: '14:30' }, { start: '15:30', end: '17:15' }]
+  'default': [{ start: '9:00', end: '14:00' }, { start: '15:00', end: '18:00' }],
+  'Fri': [{ start: '9:00', end: '14:30' }],
+  'summer': [{ start: '8:00', end: '15:00' }]
 };
 
-const DEFAULT_ENTROPY_MINUTES = 10;
+const SUMMER_MONTHS = ['Jul', 'Aug'];
+
+const DEFAULT_ENTROPY_MINUTES = 0;
 
 const CONTAINER_CLASSLIST = 'TimesheetSummary__clockButtonWrapper';
 const BUTTON_CLASSLIST = 'fab-Button fab-Button--small fab-Button--width100';
@@ -83,10 +85,15 @@ const BUTTON_CLASSLIST = 'fab-Button fab-Button--small fab-Button--width100';
 
       /* Get the working time slots for the dow */
       let dow = date.toLocaleDateString("en-US", { weekday: 'short' });
+      let month = date.toLocaleDateString("en-US", { month: 'short' });
       let slots = TEMPLATES['default'];
 
       if (TEMPLATES.hasOwnProperty(dow)) {
         slots = TEMPLATES[dow];
+      }
+
+      if (SUMMER_MONTHS.includes(month)) {
+        slots = TEMPLATES['summer'];
       }
 
       /* Generate the entries for this day */
